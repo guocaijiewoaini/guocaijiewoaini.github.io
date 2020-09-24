@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>Netty 源码学习之shutdownGracefully() | 天成的blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Netty版本号为4.1.42.Final">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Netty 源码学习之shutdownGracefully()">
+<meta property="og:url" content="https://zhutiancheng1997.github.io/2020/09/22/netty%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="天成的blog">
+<meta property="og:description" content="Netty版本号为4.1.42.Final">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-09-22T14:57:40.147Z">
+<meta property="article:modified_time" content="2020-09-23T09:21:15.861Z">
+<meta property="article:author" content="TC zhu">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="天成的blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">天成的blog</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://zhutiancheng1997.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-netty源码学习" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/09/22/netty%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/" class="article-date">
+  <time datetime="2020-09-22T14:57:40.147Z" itemprop="datePublished">2020-09-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Netty 源码学习之shutdownGracefully()
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Netty版本号为4.1.42.Final</p>
+<a id="more"></a>
+
+<h3 id="Netty优雅的关闭"><a href="#Netty优雅的关闭" class="headerlink" title="Netty优雅的关闭"></a>Netty优雅的关闭</h3><p>在启动Netty服务端时，我们会指定一个bossGroup用来接收TCP连接请求和一个workerGroup用来处理IO读写，他们的具体实现是<code>NioEventLoopGroup</code>类。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">EventLoopGroup bossGroup =<span class="keyword">new</span> NioEventLoopGroup();</span><br><span class="line">EventLoopGroup workerGroup =<span class="keyword">new</span> NioEventLoopGroup();</span><br></pre></td></tr></table></figure>
+
+<p>为了保证安全退出，会在 finally块中显示的调用下面的方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">finally</span> &#123;</span><br><span class="line">    bossGroup.shutdownGracefully();</span><br><span class="line">    workerGroup.shutdownGracefully();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>NioEventLoopGroup</code>类中没有实现<code>shutdownGracefully</code>方法，因此找到他的父类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NioEventLoopGroup</span> <span class="keyword">extends</span> <span class="title">MultithreadEventLoopGroup</span> </span>&#123;</span><br><span class="line">    <span class="comment">//....</span></span><br></pre></td></tr></table></figure>
+
+<p>进入到<code>MultithreadEventLoopGroup</code>中查看，仍然没有实现<code>shutdownGracefully</code>，再进入这个类的父类<code>MultithreadEventExecutorGroup</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">MultithreadEventLoopGroup</span> <span class="keyword">extends</span> <span class="title">MultithreadEventExecutorGroup</span> <span class="keyword">implements</span> <span class="title">EventLoopGroup</span> </span>&#123;</span><br><span class="line">    <span class="comment">//....</span></span><br></pre></td></tr></table></figure>
+
+<p>进入到这个类，定位到<code>shutdownGracefully</code>方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Future&lt;?&gt; shutdownGracefully(<span class="keyword">long</span> quietPeriod, <span class="keyword">long</span> timeout, TimeUnit unit) &#123;</span><br><span class="line">        EventExecutor[] var6 = <span class="keyword">this</span>.children;</span><br><span class="line">        <span class="keyword">int</span> var7 = var6.length;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> var8 = <span class="number">0</span>; var8 &lt; var7; ++var8) &#123;</span><br><span class="line">            EventExecutor l = var6[var8];</span><br><span class="line">            l.shutdownGracefully(quietPeriod, timeout, unit);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.terminationFuture();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到是对<code>EventExecutor</code>数组进行遍历，调用<code>EventExecutor</code>的<code>shutdownGracefully</code>方法，去到<code>EventExecutor</code>的父接口中<code>EventExecutorGroup</code>发现<code>shutdownGracefully</code>方法的声明。</p>
+<p>通过debug调试，发现源代码<code>l.shutdownGracefully(quietPeriod, timeout, unit);</code>中<code>EventExecutor l</code>实际指向抽象类<code>SingleThreadEventExecutor</code>的子类对象，在该抽象类中实现了<code>shutdownGracefully</code>方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Future&lt;?&gt; shutdownGracefully(<span class="keyword">long</span> quietPeriod, <span class="keyword">long</span> timeout, TimeUnit unit) &#123;</span><br><span class="line">    <span class="comment">//.......</span></span><br><span class="line">    <span class="comment">//省略非关键代码</span></span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">this</span>.isShuttingDown()) &#123;</span><br><span class="line">                    <span class="keyword">return</span> <span class="keyword">this</span>.terminationFuture();</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                wakeup = <span class="keyword">true</span>;</span><br><span class="line">                oldState = <span class="keyword">this</span>.state;</span><br><span class="line">                <span class="keyword">if</span> (inEventLoop) &#123;</span><br><span class="line">                    newState = <span class="number">3</span>;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="keyword">switch</span>(oldState) &#123;</span><br><span class="line">                    <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">                    <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">                        newState = <span class="number">3</span>;</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    <span class="keyword">default</span>:</span><br><span class="line">                        newState = oldState;</span><br><span class="line">                        wakeup = <span class="keyword">false</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">while</span>(!STATE_UPDATER.compareAndSet(<span class="keyword">this</span>, oldState, newState));</span><br><span class="line">     <span class="comment">//.......</span></span><br><span class="line">    <span class="comment">//省略非关键代码</span></span><br></pre></td></tr></table></figure>
+
+<p>核心是<code>STATE_UPDATER.compareAndSet(this, oldState, newState)</code>修改线程的状态，如果在修改线程状态时发现状态被别的线程修改了，则继续自旋，直到线程状态已经处于下面的3,4,5状态或者自己的更新操作成功，才退出循环。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> ST_NOT_STARTED = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> ST_STARTED = <span class="number">2</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> ST_SHUTTING_DOWN = <span class="number">3</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> ST_SHUTDOWN = <span class="number">4</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> ST_TERMINATED = <span class="number">5</span>;</span><br></pre></td></tr></table></figure>
+
+<p>完成状态修改之后，剩下的操作主要在<code>NioEventLoop</code>中进行，关键代码如下。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//....</span></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.isShuttingDown()) &#123;</span><br><span class="line">        <span class="keyword">this</span>.closeAll();</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.confirmShutdown()) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">catch</span> (Throwable var20) &#123;</span><br><span class="line">    handleLoopException(var20);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//....</span></span><br></pre></td></tr></table></figure>
+
+<p>进入到<code>closeAll()</code>函数中，他的原理是把注册到<code>selector</code>上的所有的<code>Channel</code>都关闭。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">closeAll</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.selectAgain();</span><br><span class="line">    Set&lt;SelectionKey&gt; keys = <span class="keyword">this</span>.selector.keys();</span><br><span class="line">    Collection&lt;AbstractNioChannel&gt; channels = <span class="keyword">new</span> ArrayList(keys.size());</span><br><span class="line">    Iterator var3 = keys.iterator();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(var3.hasNext()) &#123;</span><br><span class="line">        SelectionKey k = (SelectionKey)var3.next();</span><br><span class="line">        Object a = k.attachment();</span><br><span class="line">        <span class="keyword">if</span> (a <span class="keyword">instanceof</span> AbstractNioChannel) &#123;</span><br><span class="line">            channels.add((AbstractNioChannel)a);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            k.cancel();</span><br><span class="line">            NioTask&lt;SelectableChannel&gt; task = (NioTask)a;</span><br><span class="line">            invokeChannelUnregistered(task, k, (Throwable)<span class="keyword">null</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    var3 = channels.iterator();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(var3.hasNext()) &#123;</span><br><span class="line">        AbstractNioChannel ch = (AbstractNioChannel)var3.next();</span><br><span class="line">        ch.unsafe().close(ch.unsafe().voidPromise());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>ch.unsafe().close(ch.unsafe().voidPromise())</code>调用<code>AbstractUnsafe</code>的<code>close</code>方法，主要完成以下几个功能。</p>
+<p>(1) 判断当前链路是否有消息在发送，如果有则将<code>SelectionKey</code>的去注册操作封装成<code>Task</code>放到<code>eventLoop</code>中稍后再执行。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="keyword">this</span>.inFlush0) &#123;</span><br><span class="line">    <span class="keyword">this</span>.invokeLater(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            AbstractUnsafe.<span class="keyword">this</span>.fireChannelInactiveAndDeregister(wasActive);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">this</span>.fireChannelInactiveAndDeregister(wasActive);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>(2) 清空发送队列，不允许发送新的消息。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="keyword">boolean</span> wasActive = AbstractChannel.<span class="keyword">this</span>.isActive();</span><br><span class="line"><span class="keyword">final</span> ChannelOutboundBuffer outboundBuffer = <span class="keyword">this</span>.outboundBuffer;</span><br><span class="line"><span class="keyword">this</span>.outboundBuffer = <span class="keyword">null</span>;</span><br></pre></td></tr></table></figure>
+
+<p>(3) 调用<code>NioSocketChannel</code>的<code>doClose()</code>方法，关闭链路。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doClose</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.doClose();</span><br><span class="line">    <span class="keyword">this</span>.javaChannel().close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>(4) 调用<code>pipeline</code>的<code>fireChannelInactive</code>，触发链路关闭通知事件。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">this</span>.fireChannelInactiveAndDeregister(wasActive);</span><br></pre></td></tr></table></figure>
+
+<p>(5) 调用<code>AbstractNioChannel</code>的<code>doDeregister</code>，从多路复用器上取消<code>selectionKey</code>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doDeregister</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.eventLoop().cancel(<span class="keyword">this</span>.selectionKey());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>(6) 调用<code>ChannelOutboundBuffer</code>的<code>close</code>方法，释放发送队列中的所有尚未完成发送的<code>ByteBuf</code>(关闭之前没有被flushed的message)，等待GC。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (!e.cancelled) &#123;</span><br><span class="line">    ReferenceCountUtil.safeRelease(e.msg);</span><br><span class="line">    safeFail(e.promise, cause);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//省略代码...</span></span><br><span class="line"><span class="keyword">this</span>.clearNioBuffers();</span><br></pre></td></tr></table></figure>
+
+<p>执行完资源释放和连接关闭操作之后，<code>NioEventLoop</code>还有扫尾工作需要执行，<code>NioEventLoop</code>除了I/O读写，还负责定时任务执行、<code>ShutdownHook</code>(非JDK原生ShutdownHook)的执行等，如果此时有到期的定时任务，即使<code>Channel</code>已经关闭，但是仍然需要继续执行，线程不能退出，下面继续分析<code>TaskQueue</code>的退出处理流程。</p>
+<p><code>NioEventLoop</code>执行完<code>closeAll()</code>操作，需要调用<code>confirmShutdown()</code>看是否真的可以退出</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="keyword">this</span>.isShuttingDown()) &#123;</span><br><span class="line">    <span class="keyword">this</span>.closeAll();</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.confirmShutdown()) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>confirmShutdown()</code>内具体代码不继续分析了，主要是执行在<code>TaskQueue</code>中排队的<code>Task</code>，执行注册到<code>NioEventLoop</code>的<code>ShutdownHook</code>，再判断是否到达优雅退出的指定超时时间，达到或者超过立即退出，否则暂时不退出，sleep 100ms继续监测是否有新任务，有则继续执行。</p>
+<p>当<code>confirmShutdown()</code>返回true时，Netty优雅退出完成。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zhutiancheng1997.github.io/2020/09/22/netty%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/" data-id="ckff6eyw80000ysu9315y273x" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2020/09/22/Spring%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">SpringMVC执行流程源码学习</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">九月 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/09/22/netty%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/">Netty 源码学习之shutdownGracefully()</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/22/Spring%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/">SpringMVC执行流程源码学习</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/20/blog%E6%90%AD%E5%BB%BA%E6%96%87%E6%A1%A3/">(no title)</a>
+          </li>
+        
+          <li>
+            <a href="/2020/09/20/hello-world/">Hello World</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 TC zhu<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>
