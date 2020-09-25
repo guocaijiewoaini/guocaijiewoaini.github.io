@@ -5,13 +5,17 @@
   
 
   
-  <title>天成的blog</title>
+  <title>AQS源码学习 | 天成的blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="天成的blog">
-<meta property="og:url" content="https://zhutiancheng1997.github.io/index.html">
+  <meta name="description" content="AQS队列同步器是用来构建锁或者其他同步组建的基础框架，使用int的state成员变量表示同步状态，通过内置的FIFO队列来完成资源获取线程的排队工作。 AQS的设计是基于模板方法模式的，使用要是通过继承AQS并且实现它的抽象方法来管理同步状态。 AQS可重写的方法如下 12345678910&#x2F;&#x2F;独占式获取同步状态，实现该方法需要查询当前状态并判断同步状态是否符合预期，然后再CAS设置同步状态。p">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AQS源码学习">
+<meta property="og:url" content="https://zhutiancheng1997.github.io/2020/09/24/AQS%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/index.html">
 <meta property="og:site_name" content="天成的blog">
+<meta property="og:description" content="AQS队列同步器是用来构建锁或者其他同步组建的基础框架，使用int的state成员变量表示同步状态，通过内置的FIFO队列来完成资源获取线程的排队工作。 AQS的设计是基于模板方法模式的，使用要是通过继承AQS并且实现它的抽象方法来管理同步状态。 AQS可重写的方法如下 12345678910&#x2F;&#x2F;独占式获取同步状态，实现该方法需要查询当前状态并判断同步状态是否符合预期，然后再CAS设置同步状态。p">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-09-24T15:29:05.590Z">
+<meta property="article:modified_time" content="2020-09-25T17:15:46.755Z">
 <meta property="article:author" content="TC zhu">
 <meta name="twitter:card" content="summary">
   
@@ -62,9 +66,7 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main">
-  
-    <article id="post-AQS源码学习" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-AQS源码学习" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2020/09/24/AQS%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/" class="article-date">
   <time datetime="2020-09-24T15:29:05.590Z" itemprop="datePublished">2020-09-24</time>
@@ -77,8 +79,8 @@
       <header class="article-header">
         
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/09/24/AQS%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/">AQS源码学习</a>
+    <h1 class="article-title" itemprop="name">
+      AQS源码学习
     </h1>
   
 
@@ -118,175 +120,19 @@
     </footer>
   </div>
   
-</article>
-
-
+    
+<nav id="article-nav">
   
-    <article id="post-netty源码学习" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/09/22/netty%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/" class="article-date">
-  <time datetime="2020-09-22T14:57:40.147Z" itemprop="datePublished">2020-09-22</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/09/22/netty%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/">Netty 源码学习之shutdownGracefully()</a>
-    </h1>
+    <a href="/2020/09/22/netty%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Netty 源码学习之shutdownGracefully()</div>
+    </a>
   
+</nav>
 
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Netty版本号为4.1.42.Final</p>
-        
-          <p class="article-more-link">
-            <a href="/2020/09/22/netty%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zhutiancheng1997.github.io/2020/09/22/netty%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/" data-id="ckff6eyw80000ysu9315y273x" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
   
 </article>
-
-
-  
-    <article id="post-Spring源码学习" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/09/22/Spring%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/" class="article-date">
-  <time datetime="2020-09-22T03:52:17.285Z" itemprop="datePublished">2020-09-22</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/09/22/Spring%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/">SpringMVC执行流程源码学习</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>下载源码包版本  spring-framework-4.3.23.RELEASE</p>
-<p>下载地址：<a target="_blank" rel="noopener" href="https://github.com/spring-projects/spring-framework/tags">https://github.com/spring-projects/spring-framework/tags</a></p>
-        
-          <p class="article-more-link">
-            <a href="/2020/09/22/Spring%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zhutiancheng1997.github.io/2020/09/22/Spring%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/" data-id="ckfe1qinc0000a0u98ejk5bc2" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-blog搭建文档" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/09/20/blog%E6%90%AD%E5%BB%BA%E6%96%87%E6%A1%A3/" class="article-date">
-  <time datetime="2020-09-20T10:54:54.867Z" itemprop="datePublished">2020-09-20</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <hr>
-<h2 id="博客搭建过程"><a href="#博客搭建过程" class="headerlink" title="博客搭建过程"></a>博客搭建过程</h2><p>参考这位同学的流程进行搭建的，整了小半天。还不错，以后用来记录面试和学习的问题！</p>
-        
-          <p class="article-more-link">
-            <a href="/2020/09/20/blog%E6%90%AD%E5%BB%BA%E6%96%87%E6%A1%A3/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zhutiancheng1997.github.io/2020/09/20/blog%E6%90%AD%E5%BB%BA%E6%96%87%E6%A1%A3/" data-id="ckfazi8e400007su92zv69qxf" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-hello-world" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/09/20/hello-world/" class="article-date">
-  <time datetime="2020-09-20T06:02:35.453Z" itemprop="datePublished">2020-09-20</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/09/20/hello-world/">Hello World</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://zhutiancheng1997.github.io/2020/09/20/hello-world/" data-id="ckfazahgx000068u99j668oo8" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-
 
 </section>
         
